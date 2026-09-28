@@ -6,6 +6,7 @@ interface ActionEngine {
 
 sealed interface DeviceAction {
     data class OpenApp(val packageName: String) : DeviceAction
+    data class OpenUrl(val url: String) : DeviceAction
     data class MakeCall(val contactName: String) : DeviceAction
     data class SendSms(val contactName: String, val message: String) : DeviceAction
     data class SetAlarm(val epochMillis: Long) : DeviceAction
