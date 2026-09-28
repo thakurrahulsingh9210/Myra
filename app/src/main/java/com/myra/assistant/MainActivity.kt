@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,7 +47,10 @@ class MainActivity : ComponentActivity() {
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) microphone.start(lifecycleScope)
+            if (granted) {
+                microphone.start(lifecycleScope)
+                voiceState = VoiceState.LISTENING
+            }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -143,8 +147,10 @@ private fun MyraOrb(
 ) {
     var phase by remember { mutableFloatStateOf(0f) }
     var smoothedAmplitude by remember { mutableFloatStateOf(0f) }
+    val currentAmplitude by rememberUpdatedState(amplitude)
+    val currentVoiceState by rememberUpdatedState(voiceState)
 
-    LaunchedEffect(targetFps, voiceState) {
+    LaunchedEffect(targetFps) {
         var previousFrameNanos = 0L
         val frameIntervalNanos = 1_000_000_000L / targetFps
 
@@ -157,9 +163,9 @@ private fun MyraOrb(
                     phase = ((frameTimeNanos % 2_000_000_000L).toFloat() / 2_000_000_000f) *
                         (2f * PI.toFloat())
 
-                    val target = when (voiceState) {
-                        VoiceState.LISTENING -> amplitude
-                        VoiceState.SPEAKING -> 0.55f + amplitude * 0.45f
+                    val target = when (currentVoiceState) {
+                        VoiceState.LISTENING -> currentAmplitude
+                        VoiceState.SPEAKING -> 0.55f + currentAmplitude * 0.45f
                         VoiceState.THINKING -> 0.35f
                         VoiceState.CONNECTING -> 0.18f
                         VoiceState.ERROR -> 0.08f
