@@ -1,32 +1,47 @@
-# Myra AI — Windows PC Edition (Stage 1 foundation)
+# Myra AI — Windows PC Edition
 
-This is a new Windows desktop application area inside the existing Myra repository. The existing Android application and backend are preserved.
+Windows 10/11 desktop assistant foundation for Hindi (hi-IN) and English (en-IN) with hybrid online/offline design.
 
-## Target
-- Windows 10 and Windows 11
-- Hindi (hi-IN) and English (en-IN)
-- Hybrid online/offline architecture
-- Local SQLite task journal
+## Stage 1 foundation
+- Environment-backed settings, task models, SQLite task journal
+- Fail-closed action risk policy and automation contracts
 
-## Stage 1 currently includes
-- Environment-backed settings with hybrid mode defaults
-- Typed task, step, risk, and status models
-- Fail-closed action risk policy
-- Local SQLite task journal
-- Provider contracts for STT, TTS, and the AI brain
-- Desktop automation contract and Windows platform guard
-- Unit tests for settings, safety policy, and task persistence
+## Stage 2 voice engine
+- OpenAI speech-to-text adapter (gpt-4o-mini-transcribe by default)
+- OpenAI text-to-speech adapter (gpt-4o-mini-tts by default)
+- Offline faster-whisper STT using a pre-downloaded local model directory (local_files_only=True)
+- Offline Windows SAPI TTS through pyttsx3 (Windows 10/11 only)
+- Async microphone PCM16 streaming via sounddevice
+- STT/TTS provider fallback chains
+- Speech interruption/cancellation controller
+- Hindi, English, and code-switching support: pass hi-IN or en-IN for a known language; pass None for automatic language detection/code-switching
 
-## Run the foundation tests
-From this directory, using Python 3.11 or later, run:
+## Install
+Use Python 3.11+.
+
+```powershell
+cd pc
+py -3.11 -m venv .venv
+.\\.venv\\Scripts\\Activate.ps1
+python -m pip install --upgrade pip
+pip install -e ".[audio,offline,online,test]"
 python -m unittest discover -s tests -v
+```
 
-No cloud credentials are needed for these tests. No PC actions are executed by this foundation stage.
+The faster-whisper model must be downloaded separately and placed in a local folder; runtime loading is local-only and does not download a model. Set MYRA_WHISPER_MODEL_PATH to that folder. The installed SAPI voice determines Hindi availability; Windows offline Hindi speech requires a compatible Hindi voice installed in Windows.
 
-## Next stages
-1. Implement online/offline STT and TTS provider adapters.
-2. Implement a real Windows desktop UI and microphone lifecycle.
-3. Add allow-listed Windows UI Automation actions with per-action verification.
-4. Add AI planning and controlled execution behind the safety policy.
+Set OPENAI_API_KEY in the process environment or Windows Credential Manager for online OpenAI features. Do not put real secrets in .env.example or Git.
 
-Never run arbitrary model-generated shell commands. Unknown actions are blocked by default. File changes, messages, uploads, and other controlled actions require confirmation; critical actions require explicit confirmation immediately before execution.
+## Microphone example
+
+```python
+async with MicrophoneStream() as microphone:
+    async for pcm16_chunk in microphone:
+        # Accumulate/VAD-segment chunks into a complete WAV before STT.
+        ...
+```
+
+The microphone stream produces raw PCM16 chunks at 16 kHz mono by default. A production VAD/utterance segmenter and audio playback/UI lifecycle are Stage 2 follow-up work; this stream alone is not a full always-listening assistant.
+
+## Safety
+This stage provides voice I/O components only. It does not execute PC actions. Unknown actions remain blocked by default. Do not pass model-generated shell commands to a terminal.
