@@ -1,25 +1,21 @@
 [build-system]
-requires = ["setuptools>=69"]
-build-backend = "setuptools.build_meta"
-
+requires=["setuptools>=69"]
+build-backend="setuptools.build_meta"
 [project]
-name = "myra-pc"
-version = "0.2.0"
-description = "Myra AI Windows desktop assistant"
-requires-python = ">=3.11"
-
+name="myra-pc"
+version="0.3.0"
+description="Myra AI Windows desktop assistant"
+requires-python=">=3.11"
 [project.optional-dependencies]
-desktop = ["PySide6>=6.8,<7"]
-audio = ["sounddevice>=0.5,<1", "numpy>=1.26,<3"]
-offline = ["pyttsx3>=2.98,<3", "faster-whisper>=1.1,<2"]
-online = ["openai>=1.68,<3"]
-all = ["PySide6>=6.8,<7", "sounddevice>=0.5,<1", "numpy>=1.26,<3", "pyttsx3>=2.98,<3", "faster-whisper>=1.1,<2", "openai>=1.68,<3"]
-test = ["pytest>=8,<9"]
-
+desktop=["PySide6>=6.8,<7"]
+audio=["sounddevice>=0.5,<1","numpy>=1.26,<3"]
+offline=["pyttsx3>=2.98,<3","faster-whisper>=1.1,<2"]
+online=["openai>=1.68,<3","google-genai>=1.0,<2"]
+all=["PySide6>=6.8,<7","sounddevice>=0.5,<1","numpy>=1.26,<3","pyttsx3>=2.98,<3","faster-whisper>=1.1,<2","openai>=1.68,<3","google-genai>=1.0,<2"]
+test=["pytest>=8,<9"]
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["myra_pc*"]
-
+where=["."]
+include=["myra_pc*"]
 [tool.pytest.ini_options]
-pythonpath = ["."]
-testpaths = ["tests"]
+pythonpath=["."]
+testpaths=["tests"]

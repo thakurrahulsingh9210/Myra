@@ -1,47 +1,15 @@
 # Myra AI — Windows PC Edition
 
-Windows 10/11 desktop assistant foundation for Hindi (hi-IN) and English (en-IN) with hybrid online/offline design.
+Windows 10/11 desktop assistant foundation for Hindi (hi-IN) and English (en-IN), with hybrid online/offline architecture.
 
-## Stage 1 foundation
-- Environment-backed settings, task models, SQLite task journal
-- Fail-closed action risk policy and automation contracts
+Stage 1: Environment-backed settings, task models, SQLite task journal, fail-closed risk policy.
+Stage 2: OpenAI STT/TTS, offline faster-whisper STT, Windows SAPI TTS, microphone PCM16 capture, fallback and interruption. Offline Hindi speech depends on a compatible Windows Hindi SAPI voice.
+Stage 3: OpenAI Responses API and Google Gemini SDK adapters; provider fallback; local SQLite conversation history with bounded retention and clear operation; structured task planner validates JSON and calculates risk locally. Plans are proposals only and are never executed by the planner.
 
-## Stage 2 voice engine
-- OpenAI speech-to-text adapter (gpt-4o-mini-transcribe by default)
-- OpenAI text-to-speech adapter (gpt-4o-mini-tts by default)
-- Offline faster-whisper STT using a pre-downloaded local model directory (local_files_only=True)
-- Offline Windows SAPI TTS through pyttsx3 (Windows 10/11 only)
-- Async microphone PCM16 streaming via sounddevice
-- STT/TTS provider fallback chains
-- Speech interruption/cancellation controller
-- Hindi, English, and code-switching support: pass hi-IN or en-IN for a known language; pass None for automatic language detection/code-switching
+Install with Python 3.11+: from pc, create a venv, activate it, then run pip install -e ".[audio,offline,online,test]". Run tests using python -m unittest discover -s tests -v.
 
-## Install
-Use Python 3.11+.
+Set OPENAI_API_KEY and/or GEMINI_API_KEY in the process environment or Windows Credential Manager. Never commit credentials. Gemini SDK reads GEMINI_API_KEY by default.
 
-```powershell
-cd pc
-py -3.11 -m venv .venv
-.\\.venv\\Scripts\\Activate.ps1
-python -m pip install --upgrade pip
-pip install -e ".[audio,offline,online,test]"
-python -m unittest discover -s tests -v
-```
+Example composition: construct FallbackAssistantBrain([OpenAIAssistantBrain(), GeminiAssistantBrain()]), wrap it with MemoryAssistant and ConversationMemory, and create TaskPlanner(brain).
 
-The faster-whisper model must be downloaded separately and placed in a local folder; runtime loading is local-only and does not download a model. Set MYRA_WHISPER_MODEL_PATH to that folder. The installed SAPI voice determines Hindi availability; Windows offline Hindi speech requires a compatible Hindi voice installed in Windows.
-
-Set OPENAI_API_KEY in the process environment or Windows Credential Manager for online OpenAI features. Do not put real secrets in .env.example or Git.
-
-## Microphone example
-
-```python
-async with MicrophoneStream() as microphone:
-    async for pcm16_chunk in microphone:
-        # Accumulate/VAD-segment chunks into a complete WAV before STT.
-        ...
-```
-
-The microphone stream produces raw PCM16 chunks at 16 kHz mono by default. A production VAD/utterance segmenter and audio playback/UI lifecycle are Stage 2 follow-up work; this stream alone is not a full always-listening assistant.
-
-## Safety
-This stage provides voice I/O components only. It does not execute PC actions. Unknown actions remain blocked by default. Do not pass model-generated shell commands to a terminal.
+Unknown actions are blocked by local policy. Controlled and critical actions require confirmation. Conversation history remains local in SQLite. The planner never executes actions or runs shell commands.
